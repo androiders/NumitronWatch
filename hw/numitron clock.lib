@@ -1,0 +1,44 @@
+EESchema-LIBRARY Version 2.4
+#encoding utf-8
+#
+# Numitron_IV-9-Display_Character
+#
+DEF Numitron_IV-9-Display_Character U 0 25 Y Y 1 F N
+F0 "U" -100 550 50 H V R CNN
+F1 "Numitron_IV-9-Display_Character" 50 550 50 H V L CNN
+F2 "Display_7Segment: IV-9" 0 -600 50 H I C CNN
+F3 "" -500 475 50 H I L CNN
+$FPLIST
+ *KCSC02*105*
+$ENDFPLIST
+DRAW
+T 0 10 120 20 0 0 0 A Normal 0 C C
+T 0 100 90 20 0 0 0 B Normal 0 C C
+T 0 90 -30 20 0 0 0 C Normal 0 C C
+T 0 -10 -60 20 0 0 0 D Normal 0 C C
+T 0 90 -140 20 0 0 0 DP Normal 0 C C
+T 0 -100 -30 20 0 0 0 E Normal 0 C C
+T 0 -90 90 20 0 0 0 F Normal 0 C C
+T 0 0 60 20 0 0 0 G Normal 0 C C
+S -150 200 150 -200 0 1 0 N
+P 2 0 1 20 -60 10 -70 -70 N
+P 2 0 1 20 -50 -90 30 -90 N
+P 2 0 1 20 -50 130 -60 50 N
+P 2 0 1 20 -40 30 40 30 N
+P 2 0 1 20 -30 150 50 150 N
+P 2 0 1 20 60 10 50 -70 N
+P 2 0 1 20 70 130 60 50 N
+P 2 0 1 20 100 -90 100 -90 N
+X Common 1 0 300 100 D 50 50 1 1 I
+X DP 2 -250 150 100 R 50 50 1 1 I
+X B 3 -250 50 100 R 50 50 1 1 I
+X C 4 -250 -50 100 R 50 50 1 1 I
+X A 5 -250 -150 100 R 50 50 1 1 I
+X F 6 250 -50 100 L 50 50 1 1 I
+X G 7 250 50 100 L 50 50 1 1 I
+X D 8 250 150 100 L 50 50 1 1 I
+X E 9 250 -150 100 L 50 50 1 1 I
+ENDDRAW
+ENDDEF
+#
+#End Library
