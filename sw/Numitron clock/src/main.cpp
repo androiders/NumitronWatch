@@ -116,6 +116,8 @@ void setup() {
   lastHour = c.getHours();
 
    Serial.begin(9600);
+   Serial.flush();
+
 }
 
 
@@ -180,21 +182,39 @@ void loop() {
 
   if(Serial.peek() != -1)
   {
-    String cmd = Serial.readString();
+    String in = Serial.readString();
+    in.trim();
+    String cmd = in.substring(0,3);
     cmd.trim();
-    if(cmd.equals("get"))
+    if(in.startsWith("get"))
     {
       Serial.print((int)c.getHours());
       Serial.write(":");
       Serial.print((int)c.getMinuts());
       Serial.write(":");
-      Serial.print((int)c.getSeconds());
-      Serial.write("\n");
+      Serial.println((int)c.getSeconds());
+    }
+    else if(in.startsWith("set"))
+    {
+      uint8_t h = in.substring(4,6).toInt();
+      uint8_t m = in.substring(7,9).toInt();
+      uint8_t s = in.substring(10,12).toInt();
+
+      c.set(h,m,s);
+
+      Serial.write("Setting clock: ");
+      Serial.print(h);
+      Serial.write(":");
+      Serial.print(m);
+      Serial.write(":");
+      Serial.println(s);
     }
     else
     {
       Serial.write("unknown command ");
       Serial.write(cmd.c_str());
+      Serial.write("\n");
+      //Serial.flush();
     }
   }
   

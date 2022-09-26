@@ -12,7 +12,11 @@ class Clock
         void setMins(uint8_t mins);
 
         void setHours(uint8_t hours);
-  
+
+        void setSeconds(uint8_t secs);
+
+        void set(uint8_t h, uint8_t m, uint8_t s);
+
         void tickSeconds();
 
         void tickMinutes();

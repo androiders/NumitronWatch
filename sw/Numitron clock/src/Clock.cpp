@@ -23,7 +23,22 @@ void Clock::setHours(uint8_t hours)
 
     m_hours = hours;
 }
-  
+
+void Clock::setSeconds(uint8_t secs)
+{
+    if(secs > 59)
+        return;
+    
+    m_seconds = secs;
+} 
+
+void Clock::set(uint8_t h, uint8_t m, uint8_t s)
+{
+    setHours(h);
+    setMins(m);
+    setSeconds(s);
+}
+
 void Clock::tickSeconds()
 {
     m_seconds++;
