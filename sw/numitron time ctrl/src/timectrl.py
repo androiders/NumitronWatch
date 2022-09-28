@@ -8,6 +8,7 @@ def setClock():
     print(ser.name)         # check which port was really used
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
+    current_date = now.strftime("%c");
     t = 'set' + current_time + "\n"
 #    ser.write(bytes(t,encoding='utf-8'))     # write a string
     ser.write(b'set ')
@@ -16,7 +17,7 @@ def setClock():
     print(line.decode())
     ser.close()
     f = open("timefile","w")
-    f.write(current_time)
+    f.write(current_date)
     f.close()
     
     return
@@ -26,33 +27,23 @@ def checkClock():
     ser = serial.Serial('/dev/ttyUSB0')  # open serial port
     print(ser.name)         # check which port was really used
     localnow = datetime.now()
+
+
     ser.write(b'get')     # write a string
     line = ser.readline()
     ld = line.decode()
-    ld.strip()
     clocknow = datetime.strptime(ld,"%H:%M:%S\r\n")
+    clocknow = clocknow.replace(year=localnow.year, day=localnow.day, month=localnow.month)
     
-    hdiff = localnow.hour - clocknow.hour
-    mdiff = localnow.minute - clocknow.minute
-    sdiff = localnow.second - clocknow.second
     print("")
-    print("difference in time is:")
-    print("Hours: " , hdiff)
-    print("Minutes: " , mdiff)
-    print("seconds: " , sdiff)
+    print("difference in time is: " + str(clocknow - localnow))
     
     f = open("timefile","r")
     starttime = f.readline()
-    startnow = datetime.strptime(starttime,"%H:%M:%S")
-
-    diff = clocknow - startnow
-
-    hdiff = clocknow.hour - startnow.hour
-    mdiff = clocknow.minute - startnow.minute
-    sdiff = clocknow.second - startnow.second
+    startnow = datetime.strptime(starttime,"%c")
 
     print("")
-    print("Time since last set " + str(diff))
+    print("Time since last set " + str(localnow - startnow))
       
     return
 
