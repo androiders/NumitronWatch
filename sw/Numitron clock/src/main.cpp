@@ -91,9 +91,19 @@ void setupAsynchTimer2()
   TCCR2 = (1 << WGM21); //set CTC mode
   TCCR2 |= (1 << CS22) | (1 << CS21) | (0 << CS20); //set prescaler to 1/256 
 
-  OCR2 = (0xff >> 1); //just set this to something
+//secondDefinition is the value that "defines a second" in this clock. 
+//Currently with the 256 prescaler and this value == 128 is the theoretical correct value
+//But since the crystal is a little fast this value can be tweaked to make a second longer. How Long?
+//If the clock is say 3 seconds faster on a 24h period, the number of seconds of this clock
+//is 86403 (86400 is the number of seconds of 24h)
+//the ratio 86403 / 86400 = 1,000034722 is how much longer our seconds need to be
+//128 * 1,000034722 is 128,00444... which is bad :( 
+//But we can try with 129 and see what happens
+ // uint8_t secondDefinition = 129;
+
+  OCR2 = (0xff >> 1); 
   TIMSK |= (1 << OCIE2); //output compare interrup enable on timer2
-  ASSR = (1 << AS2);
+  ASSR = (1 << AS2); //set timer2 asynch mode
 }
 
 
@@ -118,6 +128,7 @@ void setup() {
    Serial.begin(9600);
    Serial.flush();
 
+  c.setCompensationSeconds(-2);
 }
 
 

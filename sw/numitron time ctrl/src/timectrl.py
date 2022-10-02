@@ -33,10 +33,17 @@ def checkClock():
     line = ser.readline()
     ld = line.decode()
     clocknow = datetime.strptime(ld,"%H:%M:%S\r\n")
-    clocknow = clocknow.replace(year=localnow.year, day=localnow.day, month=localnow.month)
+    clocknow = clocknow.replace(year=localnow.year, day=localnow.day, month=localnow.month, microsecond=localnow.microsecond)
     
     print("")
-    print("difference in time is: " + str(clocknow - localnow))
+    diff = clocknow - localnow
+    if clocknow < localnow:
+        diff = localnow - clocknow
+    
+    print("difference in time is: " + str(diff))
+    print("Numitron time is: " + str(clocknow))
+    print("Computer time is: " + str(localnow))
+    
     
     f = open("timefile","r")
     starttime = f.readline()
