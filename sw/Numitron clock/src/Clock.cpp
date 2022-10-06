@@ -41,7 +41,7 @@ void Clock::set(uint8_t h, uint8_t m, uint8_t s)
 
 void Clock::tickSeconds()
 {
-    if(m_seconds > 59)
+    if(m_seconds == 59)
     {
         m_seconds = 0;
         tickMinutes();
@@ -52,7 +52,7 @@ void Clock::tickSeconds()
 
 void Clock::tickMinutes()
 {
-    if( m_minutes > 59)
+    if( m_minutes == 59)
     {
         m_minutes = 0;
         tickHours();
@@ -65,7 +65,7 @@ void Clock::tickMinutes()
 
 void Clock::tickHours()
 {
-    if(m_hours > 23)
+    if(m_hours == 23)
     {
         m_hours = 0;
         m_seconds = m_compensationSeconds;
