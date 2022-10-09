@@ -45,11 +45,48 @@
 #define SET_M_PIN 9
 #define SET_H_PIN 10
 
-//Tpic6595 u(SER_CK, SER_CLR, R_CK, G1, SD1, G2, SD2, G3, SD3, G4, SD4);
+Tpic6595 u(SER_CK, SER_CLR, R_CK, G1, SD1, G2, SD2, G3, SD3, G4, SD4);
 Clock c;
 
 bool setM = false;
 bool setH = false;
+
+enum class ClockState
+{
+  NORMAL,
+  SET
+};
+
+ClockState currentState = ClockState::NORMAL;
+uint8_t setCnt = 0;
+
+uint8_t pwmMax = 0xff;
+
+uint8_t pwm()
+{
+  static uint8_t dutyCycle = 1;
+  static uint8_t val = 0;
+  static uint8_t pwmOp = 1;
+  static uint8_t valOp = 1;
+  static uint8_t valTgt = 50;
+  static uint8_t pwmTgt = 50;
+
+  uint8_t ret = 0;
+  if(val > dutyCycle)
+    ret = 0;
+  else
+    ret = 1;
+
+  val += 2;
+  if(val == valTgt)
+  {
+    dutyCycle += 1;
+    val = 0;
+  }
+
+  return ret;
+
+}
 
 ISR(TIMER1_OVF_vect)
 {
@@ -57,8 +94,22 @@ ISR(TIMER1_OVF_vect)
     setM = !digitalRead(SET_M_PIN);
     setH = !digitalRead(SET_H_PIN);
 
-    TCNT1 = 0xF000;
-    //c.tickSeconds();
+    if(setM && setH)
+    {
+      if(setCnt < 25)
+      {
+        setCnt++;
+      }
+      else
+      {
+        currentState = ClockState::SET;
+        setCnt = 0;
+      }
+    }
+
+    digitalWrite(8,pwm());
+
+    TCNT1 = 0xFFF0;
 }
 
 ISR(TIMER2_COMP_vect)
@@ -71,7 +122,7 @@ void setupTimer1()
 {
   TCNT1 = 0xF000;
   TCCR1A = 0x00;//(0 << COM1A0) | (0 << COM1A1); //normal mode
-  TCCR1B = (0 << CS12) | (1 << CS11) | (0 << CS10) | (0 << WGM13); //prescaler 1024
+  TCCR1B = (0 << CS12) | (0 << CS11) | (1 << CS10); //prescaler 1024
   TIMSK |= (1 << TOIE1); //overflow interrup enable
 }
 
@@ -91,25 +142,13 @@ void setupAsynchTimer2()
   TCCR2 = (1 << WGM21); //set CTC mode
   TCCR2 |= (1 << CS22) | (1 << CS21) | (0 << CS20); //set prescaler to 1/256 
 
-//secondDefinition is the value that "defines a second" in this clock. 
-//Currently with the 256 prescaler and this value == 128 is the theoretical correct value
-//But since the crystal is a little fast this value can be tweaked to make a second longer. How Long?
-//If the clock is say 3 seconds faster on a 24h period, the number of seconds of this clock
-//is 86403 (86400 is the number of seconds of 24h)
-//the ratio 86403 / 86400 = 1,000034722 is how much longer our seconds need to be
-//128 * 1,000034722 is 128,00444... which is bad :( 
-//But we can try with 129 and see what happens
- // uint8_t secondDefinition = 129;
-
   OCR2 = (0xff >> 1); 
   TIMSK |= (1 << OCIE2); //output compare interrup enable on timer2
   ASSR = (1 << AS2); //set timer2 asynch mode
 }
 
-
-
 uint8_t lastMin = 0;
-uint8_t lastHour;
+//uint8_t lastHour;
 void setup() {
   // put your setup code here, to run once:
   pinMode(17, OUTPUT);
@@ -123,10 +162,10 @@ void setup() {
   //u.clear();
 
   lastMin = c.getMinuts();
-  lastHour = c.getHours();
+//  lastHour = c.getHours();
 
-   Serial.begin(9600);
-   Serial.flush();
+  //  Serial.begin(9600);
+  //  Serial.flush();
 
   c.setCompensationSeconds(-2);
 }
@@ -159,77 +198,115 @@ void clockToIdx(const Clock & c)
 }
 
 bool updated = true;
+uint8_t  setDisableCnt = 0;
+
+void setClock()
+{
+  updated = true;
+  if(setM && !setH)
+    c.tickMinutes();
+  else if(setH && !setM)
+    c.tickHours();
+  else
+    updated = false;
+}
 
 void loop() {
 
-  if(setM)
-    c.tickMinutes();
-  else if(setH)
-    c.tickHours();
-
+  if(currentState == ClockState::SET)
+  {
+    setClock();
+  }
+  else if(currentState == ClockState::NORMAL)
+  {
   if(lastMin != c.getMinuts())
   {
     lastMin = c.getMinuts();
     updated = true;
   }
 
-  if(lastHour != c.getHours())
-  {
-    lastHour = c.getHours();
-    updated = true;
+  // if(lastHour != c.getHours())
+  // {
+  //   lastHour = c.getHours();
+  //   updated = true;
+  // }
   }
 
 
-  if(updated)
+  if(!updated)
   {
+    if(currentState == ClockState::SET)
+    {
+        u.toggle();
+        setDisableCnt++;
+        if(setDisableCnt == 10)
+        {
+          currentState = ClockState::NORMAL;
+          setDisableCnt = 0;
+          c.setSeconds(0);
+        }
+    }
+  }
+
+  //if(updated)
+  else
+  {
+    setDisableCnt = 0;
     clockToIdx(c);
     uint8_t h1 = nums[hidx];
     uint8_t h2 = nums_[hidx_];
     uint8_t m1 = nums_[midx_];
     uint8_t m2 = nums[midx];
-    //u.writeBytes(h1,h2,m1,m2);
+   
+    u.writeBytes(h1,h2,m1,m2);
     updated = false;
   }
 
-  if(Serial.peek() != -1)
-  {
-    String in = Serial.readString();
-    in.trim();
-    String cmd = in.substring(0,3);
-    cmd.trim();
-    if(in.startsWith("get"))
-    {
-      Serial.print((int)c.getHours());
-      Serial.write(":");
-      Serial.print((int)c.getMinuts());
-      Serial.write(":");
-      Serial.println((int)c.getSeconds());
-    }
-    else if(in.startsWith("set"))
-    {
-      uint8_t h = in.substring(4,6).toInt();
-      uint8_t m = in.substring(7,9).toInt();
-      uint8_t s = in.substring(10,12).toInt();
 
-      c.set(h,m,s);
+  // if(Serial.peek() != -1)
+  // {
+  //   String in = Serial.readString();
+  //   in.trim();
+  //   String cmd = in.substring(0,3);
+  //   cmd.trim();
+  //   if(in.startsWith("get"))
+  //   {
+  //     Serial.print((int)c.getHours());
+  //     Serial.write(":");
+  //     Serial.print((int)c.getMinuts());
+  //     Serial.write(":");
+  //     Serial.println((int)c.getSeconds());
+  //   }
+  //   else if(in.startsWith("set"))
+  //   {
+  //     uint8_t h = in.substring(4,6).toInt();
+  //     uint8_t m = in.substring(7,9).toInt();
+  //     uint8_t s = in.substring(10,12).toInt();
 
-      Serial.write("Setting clock: ");
-      Serial.print(h);
-      Serial.write(":");
-      Serial.print(m);
-      Serial.write(":");
-      Serial.println(s);
-    }
-    else
-    {
-      Serial.write("unknown command ");
-      Serial.write(cmd.c_str());
-      Serial.write("\n");
-      //Serial.flush();
-    }
-  }
+  //     c.set(h,m,s);
+
+  //     Serial.write("Setting clock: ");
+  //     Serial.print(h);
+  //     Serial.write(":");
+  //     Serial.print(m);
+  //     Serial.write(":");
+  //     Serial.println(s);
+  //   }
+  //   else
+  //   {
+  //     Serial.write("unknown command ");
+  //     Serial.write(cmd.c_str());
+  //     Serial.write("\n");
+  //     //Serial.flush();
+  //   }
+  // }
   
 
+  // for (byte value = 255; value >0; value-=1)
+  // {
+  //   analogWrite(17,value);
+  //   delay(10);
+  // }
   delay(500);
 
 }

@@ -13,6 +13,7 @@ Tpic6595::Tpic6595(uint8_t serck, uint8_t srclr, uint8_t rclk, uint8_t g1, uint8
 ,m_serck(serck)
 ,m_srclr(srclr)
 ,m_rclk(rclk)
+,m_enabled(true)
 
 {
     pinMode(m_serIn1,OUTPUT);
@@ -80,6 +81,20 @@ void Tpic6595::clear()
     digitalWrite(m_srclr,LOW);
     delayMicroseconds(10);
     digitalWrite(m_srclr,HIGH);
+}
+
+void Tpic6595::toggle()
+{
+    setEnabled(!m_enabled);
+}
+
+void Tpic6595::setEnabled(bool enable)
+{
+    m_enabled = enable;
+    digitalWrite(m_g1,m_enabled);
+    digitalWrite(m_g2,m_enabled);
+    digitalWrite(m_g3,m_enabled);
+    digitalWrite(m_g4,m_enabled);
 }
 
 // void Tpic6595::disableOutput()

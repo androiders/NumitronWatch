@@ -13,7 +13,7 @@ def setClock():
 #    ser.write(bytes(t,encoding='utf-8'))     # write a string
     ser.write(b'set ')
     ser.write(bytes(current_time,encoding='utf-8'))     # write a string
-    line = ser.readline()
+    line = ser.readline() 
     print(line.decode())
     ser.close()
     f = open("timefile","w")

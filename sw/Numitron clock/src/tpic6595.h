@@ -10,7 +10,8 @@ class Tpic6595
 
         void writeBytes(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4);
         void clear();
-//        void enableOutput();
+        void toggle();
+        void setEnabled(bool enable);
 //        void disableOutput();
 
     private:
@@ -29,5 +30,7 @@ class Tpic6595
         uint8_t m_serIn2;
         uint8_t m_serIn3;
         uint8_t m_serIn4;
+
+        bool m_enabled;
 
 };
