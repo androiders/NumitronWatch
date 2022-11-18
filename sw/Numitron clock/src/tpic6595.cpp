@@ -48,14 +48,12 @@ Tpic6595::Tpic6595(uint8_t serck, uint8_t srclr, uint8_t rclk, uint8_t g1, uint8
 
 void Tpic6595::writeBytes(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4)
 {
-    digitalWrite(m_srclr,HIGH);
     digitalWrite(m_g1,HIGH);
     digitalWrite(m_g2,HIGH);
     digitalWrite(m_g3,HIGH);
     digitalWrite(m_g4,HIGH);
 
-    //shiftOut(m_serIn,m_serck,LSBFIRST, data);
-
+    digitalWrite(m_srclr,HIGH);
      for(uint8_t i = 0; i < 8; ++i)
      {
         uint8_t BIT1 = !!(b1 & (0x01 << i));
@@ -64,16 +62,15 @@ void Tpic6595::writeBytes(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4)
         uint8_t BIT4 = !!(b4 & (0x01 << i));
         this->shiftOut(BIT1, BIT2, BIT3, BIT4);
      }
-
     digitalWrite(m_rclk,HIGH);
-    //delayMicroseconds(10);
     digitalWrite(m_rclk,LOW);
+
+    digitalWrite(m_srclr,LOW);
 
     digitalWrite(m_g1,LOW);
     digitalWrite(m_g2,LOW);
     digitalWrite(m_g3,LOW);
     digitalWrite(m_g4,LOW);
-    digitalWrite(m_srclr,LOW);
 }
 
 void Tpic6595::clear()
